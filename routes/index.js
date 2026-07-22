@@ -2,7 +2,8 @@ const express = require("express");
 const indexRouter = express.Router();
 const fs = require("fs").promises;
 const path = require("path");
-const { getDb } = require("../db");
+const { DB } = require("../services/db");
+const dataBase = new DB()
 
 indexRouter.get("/", function (req, res, next) {
   res.render("index");
@@ -17,8 +18,9 @@ indexRouter.get("/login", function (req, res, next) {
 });
 
 indexRouter.get("/todo", async (req, res, next) => {
-  const users = await getDb().collection("users").find({}).toArray();
-  const loggedInUser = await getDb().collection("currentUser").findOne({});
+  const db = await dataBase.getDb()
+  const users = await db.collection("users").find({}).toArray();
+  const loggedInUser = await db.collection("currentUser").findOne({});
 
   if (!loggedInUser || Object.keys(loggedInUser).length === 0) {
     return res.status(401).json({

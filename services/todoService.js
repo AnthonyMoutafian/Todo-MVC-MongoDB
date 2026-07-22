@@ -39,7 +39,7 @@ class TodoService extends ReadDBService {
     const currentUser = await super.getCurrentUser();
     const userId = new ObjectId(currentUser._id);
 
-    const db = super.getDB();
+    const db = await super.getDB();
 
     await db.collection("users").updateOne(
       {
@@ -70,7 +70,7 @@ class TodoService extends ReadDBService {
     const currentUser = await super.getCurrentUser();
     const userId = new ObjectId(currentUser._id);
 
-    const db = super.getDB();
+    const db = await super.getDB();
 
     await db.collection("users").updateOne(
       {
@@ -103,7 +103,7 @@ class TodoService extends ReadDBService {
     const currentUser = await super.getCurrentUser();
     const userId = new ObjectId(currentUser._id);
 
-    const db = super.getDB();
+    const db = await super.getDB();
 
     await db.collection("users").updateOne(
       {

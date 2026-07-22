@@ -1,28 +1,29 @@
 const fs = require("fs").promises;
 const path = require("path");
-const { getDb } = require("../db");
+const { DB } = require("./db");
 
-class ReadDBService {
-  getDB() {
-    return getDb();
+class ReadDBService extends DB {
+  async getDB() {
+    const db = await super.getDb()
+    return db;
   }
   async getUsers() {
-    const db = this.getDB();
+    const db = await this.getDB();
     const users = db.collection("users").find({}).toArray();
     return users;
   }
   async getCurrentUser() {
-    const db = this.getDB();
+    const db = await this.getDB();
     return await db.collection("currentUser").findOne({});
   }
   async saveToUsers(id, update) {
-    const db = this.getDB();
+    const db = await this.getDB();
 
     await db.collection("users").updateOne({ _id: id }, update);
   }
 
   async saveToCurrentUser(id, update) {
-    const db = this.getDB();
+    const db = await this.getDB();
 
     await db.collection("currentUser").updateOne({ _id: id }, update);
   }

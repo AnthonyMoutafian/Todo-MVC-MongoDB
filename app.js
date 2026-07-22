@@ -11,7 +11,8 @@ const authRouter = require("./routes/auth");
 const { ReadDBService } = require("./services/readDBService");
 const todoRouter = require("./routes/todo");
 const { TodoService } = require("./services/todoService");
-const { connectToDB } = require("./db");
+const { DB } =  require("./services/db");
+const connectToDB = new DB().connectToDB
 
 var app = express();
 connectToDB()
