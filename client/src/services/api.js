@@ -79,3 +79,44 @@ export async function logoutUser() {
     method: "POST",
   });
 }
+export async function uploadAvatar(file) {
+  const formData = new FormData();
+
+  formData.append("avatar", file);
+
+  const res = await fetch(`${API}/avatar`, {
+    method: "PUT",
+    body: formData,
+  });
+
+  return await res.json();
+}
+
+export async function deleteAvatar() {
+  const res = await fetch(`${API}/avatar`, {
+    method: "DELETE",
+  });
+
+  return res.json();
+}
+
+export async function uploadTodoImage(id, file) {
+  const formData = new FormData();
+
+  formData.append("image", file);
+
+  const res = await fetch(`${API}/todo/${id}/image`, {
+    method: "PUT",
+    body: formData,
+  });
+
+  return res.json();
+}
+
+export async function deleteTodoImage(id) {
+  const res = await fetch(`${API}/todo/${id}/image`, {
+    method: "DELETE",
+  });
+
+  return res.json();
+}

@@ -1,10 +1,28 @@
 const bcrypt = require("bcryptjs");
 const { ReadDBService } = require("./readDBService");
 const { schema } = require("../schema/schema");
+const googleDrive = require("./googleDriveService");
 
 class AuthServices extends ReadDBService {
   constructor(models) {
     super(models);
+  }
+
+  async uploadAvatar(file) {
+    const currentUser = await this.getCurrentUser();
+
+    if (!currentUser) throw new Error("User not found");
+
+    const uploaded = await googleDrive.replaceFile(
+      currentUser.avatar?.fileId,
+      file.path,
+      file.filename,
+      "avatar",
+    );
+
+    await this.updateAvatar(currentUser._id, uploaded);
+
+    return uploaded;
   }
 
   async registerUser(body) {
@@ -20,6 +38,7 @@ class AuthServices extends ReadDBService {
 
     newUser.password = await bcrypt.hash(newUser.password, 10);
     newUser.todos = [];
+    newUser.avatar = null;
 
     await this.models.users.create(newUser);
   }
@@ -46,6 +65,7 @@ class AuthServices extends ReadDBService {
       name: user.name,
       email: user.email,
       password: user.password,
+      avatar: user.avatar,
       todos: user.todos,
     });
 
@@ -54,6 +74,42 @@ class AuthServices extends ReadDBService {
 
   async logoutUser() {
     await this.models.currentUser.deleteMany({});
+  }
+
+  async deleteAvatar() {
+    const currentUser = await this.getCurrentUser();
+
+    if (!currentUser) {
+      throw new Error("User not found");
+    }
+
+    if (currentUser.avatar?.fileId) {
+      await googleDrive.deleteFile(currentUser.avatar.fileId);
+    }
+
+    await this.models.users.updateOne(
+      {
+        _id: currentUser._id,
+      },
+      {
+        $set: {
+          avatar: null,
+        },
+      },
+    );
+
+    await this.models.currentUser.updateOne(
+      {
+        _id: currentUser._id,
+      },
+      {
+        $set: {
+          avatar: null,
+        },
+      },
+    );
+
+    return true;
   }
 }
 

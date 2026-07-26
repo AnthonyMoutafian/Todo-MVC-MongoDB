@@ -12,7 +12,12 @@ class TodoController {
 
       res.json({
         success: true,
-        todos: currentUser.todos,
+        user: {
+          name: currentUser.name,
+          email: currentUser.email,
+          avatar: currentUser.avatar || null,
+          todos: currentUser.todos,
+        },
       });
     } catch (err) {
       res.status(500).json({
@@ -93,6 +98,49 @@ class TodoController {
       res.json({
         success: true,
         message: "Todo saved",
+      });
+    } catch (err) {
+      res.status(400).json({
+        success: false,
+        message: err.message,
+      });
+    }
+  }
+
+  async uploadTodoImage(req, res) {
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: "Please select an image.",
+        });
+      }
+
+      const image = await req.app.locals.services.todos.uploadTodoImage(
+        req.params.id,
+        req.file,
+      );
+
+      res.json({
+        success: true,
+        message: "Image uploaded successfully.",
+        image,
+      });
+    } catch (err) {
+      res.status(400).json({
+        success: false,
+        message: err.message,
+      });
+    }
+  }
+
+  async deleteTodoImage(req, res) {
+    try {
+      await req.app.locals.services.todos.deleteTodoImage(req.params.id);
+
+      res.json({
+        success: true,
+        message: "Image deleted successfully.",
       });
     } catch (err) {
       res.status(400).json({

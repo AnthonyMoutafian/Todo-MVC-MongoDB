@@ -34,6 +34,35 @@ class ReadDBService {
       update,
     );
   }
+
+  async updateAvatar(userId, avatar) {
+
+    return this.updateUserAndCurrentUser(
+        { _id: userId },
+        {
+            $set: {
+                avatar,
+            },
+        }
+    );
+
+}
+
+async updateTodoImage(userId, todoId, image) {
+
+    return this.updateUserAndCurrentUser(
+        {
+            _id: userId,
+            "todos._id": todoId,
+        },
+        {
+            $set: {
+                "todos.$.image": image,
+            },
+        }
+    );
+
+}
 }
 
 module.exports.ReadDBService = ReadDBService;

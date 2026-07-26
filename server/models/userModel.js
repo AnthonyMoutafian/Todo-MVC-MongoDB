@@ -1,5 +1,10 @@
 const { Schema, model } = require("mongoose");
 
+const imageSchema = new Schema({
+    fileId: String,
+    url: String,
+}, { _id: false });
+
 const todoSchema = new Schema({
   todo: {
     type: String,
@@ -14,6 +19,7 @@ const todoSchema = new Schema({
     type: Boolean,
     default: false,
   },
+  image: imageSchema,
 });
 
 const userSchema = new Schema({
@@ -38,6 +44,10 @@ const userSchema = new Schema({
         return /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(value);
       },
     },
+  },
+  avatar:  {
+    type: imageSchema,
+    default: null,
   },
   todos: [todoSchema],
 });

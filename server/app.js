@@ -1,3 +1,4 @@
+require("dotenv").config();
 var createError = require("http-errors");
 var express = require("express");
 var path = require("path");
@@ -14,6 +15,7 @@ const { TodoService } = require("./services/todoService");
 const userModel = require("./models/userModel");
 const currentUserModel = require("./models/currentUserModel");
 const cors = require("cors");
+
 
 var app = express();
 mongoose

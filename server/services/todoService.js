@@ -1,5 +1,6 @@
 const { ReadDBService } = require("./readDBService");
 const mongoose = require("mongoose");
+const googleDrive = require("./googleDriveService");
 
 class TodoService extends ReadDBService {
   constructor(models) {
@@ -31,6 +32,16 @@ class TodoService extends ReadDBService {
     const currentUser = await this.getCurrentUser();
 
     if (!currentUser) return;
+
+    const todo = currentUser.todos.find(
+      (todo) => todo._id.toString() === todoId,
+    );
+
+    if (!todo) return;
+
+    if (todo.image?.fileId) {
+      await googleDrive.deleteFile(todo.image.fileId);
+    }
 
     await this.updateTodos(currentUser._id, {
       $pull: {
@@ -97,6 +108,36 @@ class TodoService extends ReadDBService {
         },
       },
     );
+  }
+
+  async uploadTodoImage(todoId, file) {
+    const currentUser = await this.getCurrentUser();
+
+    const uploaded = await googleDrive.uploadFile(
+      file.path,
+      file.filename,
+      "todo",
+    );
+
+    await this.updateTodoImage(
+      currentUser._id,
+      new mongoose.Types.ObjectId(todoId),
+      uploaded,
+    );
+
+    return uploaded;
+  }
+
+  async deleteTodoImage(todoId) {
+    const currentUser = await this.getCurrentUser();
+
+    const todo = currentUser.todos.id(todoId);
+
+    if (!todo?.image) return;
+
+    await googleDrive.deleteFile(todo.image.fileId);
+
+    await this.updateTodoImage(currentUser._id, todo._id, null);
   }
 }
 
