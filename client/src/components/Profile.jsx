@@ -60,6 +60,7 @@ export default function Profile() {
           className="profileAvatar"
           src={user.avatar?.url || DEFAULT_AVATAR}
           alt="avatar"
+          referrerPolicy="no-referrer"
         />
 
         <h2>{user.name}</h2>

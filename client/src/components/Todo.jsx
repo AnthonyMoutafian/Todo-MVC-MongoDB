@@ -128,6 +128,7 @@ export default function Todo() {
                     className="todoImage"
                     src={todo.image?.url || NO_IMAGE}
                     alt=""
+                    referrerPolicy="no-referrer"
                   />
                 </div>
                 {todo.isEditing && !todo.isChecked && (
