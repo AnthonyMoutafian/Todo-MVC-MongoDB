@@ -1,10 +1,13 @@
 const express = require("express");
 const upload = require("../middleware/upload");
-const router = express.Router();
-
+const { checkAuth } = require("../middleware/checkAuth");
 const { TodoController } = require("../controllers/todoController");
 
+const router = express.Router();
+
 const controller = new TodoController();
+
+router.use(checkAuth);
 
 router.get("/", controller.getTodos);
 
@@ -21,9 +24,12 @@ router.post("/delete/:id", controller.deleteTodo);
 router.put(
   "/:id/image",
   upload.single("image"),
-  controller.uploadTodoImage,
+  controller.uploadTodoImage
 );
 
-router.delete("/:id/image", controller.deleteTodoImage);
+router.delete(
+  "/:id/image",
+  controller.deleteTodoImage
+);
 
 module.exports = router;

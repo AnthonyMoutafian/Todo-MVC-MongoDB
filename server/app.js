@@ -13,9 +13,7 @@ const { ReadDBService } = require("./services/readDBService");
 const todoRouter = require("./routes/todo");
 const { TodoService } = require("./services/todoService");
 const userModel = require("./models/userModel");
-const currentUserModel = require("./models/currentUserModel");
 const cors = require("cors");
-
 
 var app = express();
 mongoose
@@ -28,7 +26,6 @@ mongoose
 
 app.locals.models = {
   users: userModel,
-  currentUser: currentUserModel,
 };
 
 app.locals.services = {
@@ -51,6 +48,7 @@ const corsOptions = {
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type"],
   credentials: true,
+  allowedHeaders: ["Content-Type", "Authorization"],
 };
 
 app.use(cors(corsOptions));

@@ -7,12 +7,18 @@ class TodoService extends ReadDBService {
     super(models);
   }
 
-  async addTodo(body) {
+  async getTodos(userId) {
+    const user = await this.getUserById(userId);
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    return user;
+  }
+
+  async addTodo(userId, body) {
     if (!body.todo || body.todo.trim() === "") return;
-
-    const currentUser = await this.getCurrentUser();
-
-    if (!currentUser) return;
 
     const newTodo = {
       _id: new mongoose.Types.ObjectId(),
@@ -21,21 +27,19 @@ class TodoService extends ReadDBService {
       isEditing: false,
     };
 
-    await this.updateTodos(currentUser._id, {
+    await this.updateTodos(userId, {
       $push: {
         todos: newTodo,
       },
     });
   }
 
-  async deleteTodo(todoId) {
-    const currentUser = await this.getCurrentUser();
+  async deleteTodo(userId, todoId) {
+    const user = await this.getUserById(userId);
 
-    if (!currentUser) return;
+    if (!user) return;
 
-    const todo = currentUser.todos.find(
-      (todo) => todo._id.toString() === todoId,
-    );
+    const todo = user.todos.find((todo) => todo._id.toString() === todoId);
 
     if (!todo) return;
 
@@ -43,7 +47,7 @@ class TodoService extends ReadDBService {
       await googleDrive.deleteFile(todo.image.fileId);
     }
 
-    await this.updateTodos(currentUser._id, {
+    await this.updateTodos(userId, {
       $pull: {
         todos: {
           _id: new mongoose.Types.ObjectId(todoId),
@@ -52,14 +56,10 @@ class TodoService extends ReadDBService {
     });
   }
 
-  async doneTodo(todoId) {
-    const currentUser = await this.getCurrentUser();
-
-    if (!currentUser) return;
-
-    await this.updateUserAndCurrentUser(
+  async doneTodo(userId, todoId) {
+    await this.updateUser(
       {
-        _id: currentUser._id,
+        _id: userId,
         "todos._id": new mongoose.Types.ObjectId(todoId),
       },
       {
@@ -71,14 +71,10 @@ class TodoService extends ReadDBService {
     );
   }
 
-  async editTodo(todoId) {
-    const currentUser = await this.getCurrentUser();
-
-    if (!currentUser) return;
-
-    await this.updateUserAndCurrentUser(
+  async editTodo(userId, todoId) {
+    await this.updateUser(
       {
-        _id: currentUser._id,
+        _id: userId,
         "todos._id": new mongoose.Types.ObjectId(todoId),
       },
       {
@@ -89,16 +85,12 @@ class TodoService extends ReadDBService {
     );
   }
 
-  async saveTodo(todoId, body) {
+  async saveTodo(userId, todoId, body) {
     if (!body.todo || body.todo.trim() === "") return;
 
-    const currentUser = await this.getCurrentUser();
-
-    if (!currentUser) return;
-
-    await this.updateUserAndCurrentUser(
+    await this.updateUser(
       {
-        _id: currentUser._id,
+        _id: userId,
         "todos._id": new mongoose.Types.ObjectId(todoId),
       },
       {
@@ -110,9 +102,7 @@ class TodoService extends ReadDBService {
     );
   }
 
-  async uploadTodoImage(todoId, file) {
-    const currentUser = await this.getCurrentUser();
-
+  async uploadTodoImage(userId, todoId, file) {
     const uploaded = await googleDrive.uploadFile(
       file.path,
       file.filename,
@@ -120,7 +110,7 @@ class TodoService extends ReadDBService {
     );
 
     await this.updateTodoImage(
-      currentUser._id,
+      userId,
       new mongoose.Types.ObjectId(todoId),
       uploaded,
     );
@@ -128,16 +118,18 @@ class TodoService extends ReadDBService {
     return uploaded;
   }
 
-  async deleteTodoImage(todoId) {
-    const currentUser = await this.getCurrentUser();
+  async deleteTodoImage(userId, todoId) {
+    const user = await this.getUserById(userId);
 
-    const todo = currentUser.todos.id(todoId);
+    if (!user) return;
+
+    const todo = user.todos.id(todoId);
 
     if (!todo?.image) return;
 
     await googleDrive.deleteFile(todo.image.fileId);
 
-    await this.updateTodoImage(currentUser._id, todo._id, null);
+    await this.updateTodoImage(userId, todo._id, null);
   }
 }
 

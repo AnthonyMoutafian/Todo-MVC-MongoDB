@@ -15,14 +15,25 @@ export default function Profile() {
   const navigate = useNavigate();
 
   async function loadProfile() {
-    const data = await getCurrentUser();
-
-    if (!data.success) {
+    if (!localStorage.getItem("token")) {
       navigate("/login");
       return;
     }
 
-    setUser(data.user);
+    try {
+      const data = await getCurrentUser();
+
+      if (!data.success) {
+        localStorage.removeItem("token");
+        navigate("/login");
+        return;
+      }
+
+      setUser(data.user);
+    } catch {
+      localStorage.removeItem("token");
+      navigate("/login");
+    }
   }
 
   useEffect(() => {
@@ -47,6 +58,8 @@ export default function Profile() {
 
   async function logout() {
     await logoutUser();
+
+    localStorage.removeItem("token");
 
     navigate("/login");
   }

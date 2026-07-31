@@ -32,6 +32,8 @@ export default function Login() {
         return;
       }
 
+      localStorage.setItem("token", data.token);
+
       navigate("/todo");
     } catch (err) {
       setError(err.message);
@@ -42,7 +44,9 @@ export default function Login() {
     <div className="loginBox">
       <form className="formBoxLogin" onSubmit={submitHandler}>
         {error && <p>{error}</p>}
-        <a className="registerLink" href="/register">Register <i class="bi bi-arrow-right"></i></a>
+        <a className="registerLink" href="/register">
+          Register <i className="bi bi-arrow-right"></i>
+        </a>
 
         <input
           placeholder="Enter Email"

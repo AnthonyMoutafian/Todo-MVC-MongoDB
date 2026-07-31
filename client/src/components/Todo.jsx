@@ -17,20 +17,27 @@ const NO_IMAGE = "https://placehold.co/120x120?text=No+Image";
 export default function Todo() {
   const [todos, setTodos] = useState([]);
   const [value, setValue] = useState("");
-  const [loggedIn, setLoggedIn] = useState(true);
+  const [loggedIn, setLoggedIn] = useState(!!localStorage.getItem("token"));
   const navigate = useNavigate();
 
   async function loadTodos() {
+    if (!localStorage.getItem("token")) {
+      setLoggedIn(false);
+      return;
+    }
+
     try {
       const data = await getCurrentUser();
 
       if (!data.success) {
+        localStorage.removeItem("token");
         setLoggedIn(false);
         return;
       }
 
       setTodos(data.user.todos || []);
-    } catch (err) {
+    } catch {
+      localStorage.removeItem("token");
       setLoggedIn(false);
     }
   }
@@ -76,8 +83,11 @@ export default function Todo() {
   async function logout() {
     await logoutUser();
 
+    localStorage.removeItem("token");
+
     setLoggedIn(false);
     setTodos([]);
+
     navigate("/login");
   }
 

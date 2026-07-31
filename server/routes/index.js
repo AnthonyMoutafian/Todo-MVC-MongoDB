@@ -1,5 +1,6 @@
 const express = require("express");
 const indexRouter = express.Router();
+const { checkAuth } = require("../middleware/checkAuth");
 
 indexRouter.get("/", function (req, res) {
   res.render("index");
@@ -13,16 +14,12 @@ indexRouter.get("/login", function (req, res) {
   res.render("login");
 });
 
-indexRouter.get("/todo", async (req, res) => {
+indexRouter.get("/todo", checkAuth, async (req, res) => {
   try {
-    const currentUser = await req.app.locals.services.users.getCurrentUser();
-
-    if (!currentUser) {
-      return res.redirect("/login");
-    }
+    const user = await req.app.locals.services.auth.populate(res.locals.userId);
 
     res.render("todo", {
-      todos: currentUser.todos,
+      todos: user.todos,
     });
   } catch (err) {
     res.status(500).json({

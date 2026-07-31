@@ -1,4 +1,5 @@
 const { Schema, model } = require("mongoose");
+const bcrypt = require("bcryptjs")
 
 const imageSchema = new Schema({
     fileId: String,
@@ -38,7 +39,7 @@ const userSchema = new Schema({
   password: {
     type: String,
     required: true,
-    minlength: 8,
+    minlength: 6,
     validate: {
       validator: function (value) {
         return /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(value);
@@ -51,5 +52,10 @@ const userSchema = new Schema({
   },
   todos: [todoSchema],
 });
+
+userSchema.pre("save", async function(){
+  const hashedPassword = await bcrypt.hash(this.password,10);
+  this.password = hashedPassword
+})
 
 module.exports = model("User", userSchema);

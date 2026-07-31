@@ -9,25 +9,14 @@ class ReadDBService {
     return await this.models.users.find();
   }
 
-  async getCurrentUser() {
-    return await this.models.currentUser.findOne();
-  }
-
-  async updateUserAndCurrentUser(filter, update) {
+  async updateUser(filter, update) {
     const userResult = await this.models.users.updateOne(filter, update);
 
-    const currentUserResult = await this.models.currentUser.updateOne(
-      filter,
-      update,
-    );
-    return {
-      userResult,
-      currentUserResult,
-    };
+    return userResult;
   }
 
   async updateTodos(userId, update) {
-    await this.updateUserAndCurrentUser(
+    await this.updateUser(
       {
         _id: userId,
       },
@@ -35,34 +24,34 @@ class ReadDBService {
     );
   }
 
+  async getUserById(userId) {
+    return await this.models.users.findById(userId);
+  }
+
   async updateAvatar(userId, avatar) {
-
-    return this.updateUserAndCurrentUser(
-        { _id: userId },
-        {
-            $set: {
-                avatar,
-            },
-        }
-    );
-
-}
-
-async updateTodoImage(userId, todoId, image) {
-
-    return this.updateUserAndCurrentUser(
-        {
-            _id: userId,
-            "todos._id": todoId,
+    return this.updateUser(
+      { _id: userId },
+      {
+        $set: {
+          avatar,
         },
-        {
-            $set: {
-                "todos.$.image": image,
-            },
-        }
+      },
     );
+  }
 
-}
+  async updateTodoImage(userId, todoId, image) {
+    return this.updateUser(
+      {
+        _id: userId,
+        "todos._id": todoId,
+      },
+      {
+        $set: {
+          "todos.$.image": image,
+        },
+      },
+    );
+  }
 }
 
 module.exports.ReadDBService = ReadDBService;

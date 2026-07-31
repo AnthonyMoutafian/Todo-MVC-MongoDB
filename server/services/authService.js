@@ -2,25 +2,28 @@ const bcrypt = require("bcryptjs");
 const { ReadDBService } = require("./readDBService");
 const { schema } = require("../schema/schema");
 const googleDrive = require("./googleDriveService");
+const jwt = require("jsonwebtoken");
 
 class AuthServices extends ReadDBService {
   constructor(models) {
     super(models);
   }
 
-  async uploadAvatar(file) {
-    const currentUser = await this.getCurrentUser();
+  async uploadAvatar(userId, file) {
+    const user = await this.getUserById(userId);
 
-    if (!currentUser) throw new Error("User not found");
+    if (!user) {
+      throw new Error("User not found");
+    }
 
     const uploaded = await googleDrive.replaceFile(
-      currentUser.avatar?.fileId,
+      user.avatar?.fileId,
       file.path,
       file.filename,
       "avatar",
     );
 
-    await this.updateAvatar(currentUser._id, uploaded);
+    await this.updateAvatar(userId, uploaded);
 
     return uploaded;
   }
@@ -36,11 +39,21 @@ class AuthServices extends ReadDBService {
       throw new Error("Email already exists");
     }
 
-    newUser.password = await bcrypt.hash(newUser.password, 10);
     newUser.todos = [];
     newUser.avatar = null;
 
-    await this.models.users.create(newUser);
+    const createdUser = await this.models.users.create(newUser);
+
+    const token = jwt.sign({ id: createdUser._id }, process.env.JWT_SECRET, {
+      expiresIn: "10s",
+    });
+
+    const { password, ...user } = createdUser._doc;
+
+    return {
+      ...user,
+      token,
+    };
   }
 
   async loginUser(body) {
@@ -52,62 +65,33 @@ class AuthServices extends ReadDBService {
       throw new Error("Invalid email or password");
     }
 
-    const matched = await bcrypt.compare(body.password, user.password);
+    const validPassword = await bcrypt.compare(body.password, user.password);
 
-    if (!matched) {
+    if (!validPassword) {
       throw new Error("Invalid email or password");
     }
 
-    await this.models.currentUser.deleteMany({});
-
-    await this.models.currentUser.create({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      password: user.password,
-      avatar: user.avatar,
-      todos: user.todos,
+    return jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
     });
-
-    return user;
   }
 
   async logoutUser() {
-    await this.models.currentUser.deleteMany({});
+    return true;
   }
 
-  async deleteAvatar() {
-    const currentUser = await this.getCurrentUser();
+  async deleteAvatar(userId) {
+    const user = await this.getUserById(userId);
 
-    if (!currentUser) {
+    if (!user) {
       throw new Error("User not found");
     }
 
-    if (currentUser.avatar?.fileId) {
-      await googleDrive.deleteFile(currentUser.avatar.fileId);
+    if (user.avatar?.fileId) {
+      await googleDrive.deleteFile(user.avatar.fileId);
     }
 
-    await this.models.users.updateOne(
-      {
-        _id: currentUser._id,
-      },
-      {
-        $set: {
-          avatar: null,
-        },
-      },
-    );
-
-    await this.models.currentUser.updateOne(
-      {
-        _id: currentUser._id,
-      },
-      {
-        $set: {
-          avatar: null,
-        },
-      },
-    );
+    await this.updateAvatar(userId, null);
 
     return true;
   }

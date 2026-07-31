@@ -18,12 +18,14 @@ class AuthController {
 
   async loginUser(req, res) {
     try {
-      const user = await req.app.locals.services.auth.loginUser(req.body);
+      const token = await req.app.locals.services.auth.loginUser(req.body);
+
+      res.cookie("Login", token);
 
       res.json({
         success: true,
         message: "Login successful",
-        user,
+        token,
       });
     } catch (err) {
       res.status(400).json({
@@ -57,9 +59,10 @@ class AuthController {
         });
       }
 
-      console.log(req.file);
-
-      const avatar = await req.app.locals.services.auth.uploadAvatar(req.file);
+      const avatar = await req.app.locals.services.auth.uploadAvatar(
+        res.locals.userId,
+        req.file,
+      );
 
       res.json({
         success: true,
@@ -77,7 +80,7 @@ class AuthController {
 
   async deleteAvatar(req, res) {
     try {
-      await req.app.locals.services.auth.deleteAvatar();
+      await req.app.locals.services.auth.deleteAvatar(res.locals.userId);
 
       res.json({
         success: true,

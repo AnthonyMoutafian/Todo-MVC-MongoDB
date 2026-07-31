@@ -33,6 +33,8 @@ export default function Register() {
         return;
       }
 
+      localStorage.setItem("token", data.token);
+
       navigate("/login");
     } catch (err) {
       setError(err.message);
@@ -43,7 +45,9 @@ export default function Register() {
     <div className="registerBox">
       <form className="formBox" onSubmit={submitHandler}>
         {error && <p>{error}</p>}
-        <a className="loginLink" href="/login">Login <i class="bi bi-arrow-right"></i></a>
+        <a className="loginLink" href="/login">
+          Login <i className="bi bi-arrow-right"></i>
+        </a>
 
         <input
           placeholder="Enter Name"

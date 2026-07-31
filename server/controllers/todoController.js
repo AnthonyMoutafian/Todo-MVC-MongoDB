@@ -1,22 +1,17 @@
 class TodoController {
   async getTodos(req, res) {
     try {
-      const currentUser = await req.app.locals.services.users.getCurrentUser();
-
-      if (!currentUser) {
-        return res.status(401).json({
-          success: false,
-          message: "Not logged in",
-        });
-      }
+      const user = await req.app.locals.services.todos.getTodos(
+        res.locals.userId,
+      );
 
       res.json({
         success: true,
         user: {
-          name: currentUser.name,
-          email: currentUser.email,
-          avatar: currentUser.avatar || null,
-          todos: currentUser.todos,
+          name: user.name,
+          email: user.email,
+          avatar: user.avatar,
+          todos: user.todos,
         },
       });
     } catch (err) {
@@ -29,7 +24,7 @@ class TodoController {
 
   async addTodo(req, res) {
     try {
-      await req.app.locals.services.todos.addTodo(req.body);
+      await req.app.locals.services.todos.addTodo(res.locals.userId, req.body);
 
       res.status(201).json({
         success: true,
@@ -45,7 +40,10 @@ class TodoController {
 
   async deleteTodo(req, res) {
     try {
-      await req.app.locals.services.todos.deleteTodo(req.params.id);
+      await req.app.locals.services.todos.deleteTodo(
+        res.locals.userId,
+        req.params.id,
+      );
 
       res.json({
         success: true,
@@ -61,7 +59,10 @@ class TodoController {
 
   async doneTodo(req, res) {
     try {
-      await req.app.locals.services.todos.doneTodo(req.params.id);
+      await req.app.locals.services.todos.doneTodo(
+        res.locals.userId,
+        req.params.id,
+      );
 
       res.json({
         success: true,
@@ -77,7 +78,10 @@ class TodoController {
 
   async editTodo(req, res) {
     try {
-      await req.app.locals.services.todos.editTodo(req.params.id);
+      await req.app.locals.services.todos.editTodo(
+        res.locals.userId,
+        req.params.id,
+      );
 
       res.json({
         success: true,
@@ -93,7 +97,11 @@ class TodoController {
 
   async saveTodo(req, res) {
     try {
-      await req.app.locals.services.todos.saveTodo(req.params.id, req.body);
+      await req.app.locals.services.todos.saveTodo(
+        res.locals.userId,
+        req.params.id,
+        req.body,
+      );
 
       res.json({
         success: true,
@@ -117,6 +125,7 @@ class TodoController {
       }
 
       const image = await req.app.locals.services.todos.uploadTodoImage(
+        res.locals.userId,
         req.params.id,
         req.file,
       );
@@ -136,7 +145,10 @@ class TodoController {
 
   async deleteTodoImage(req, res) {
     try {
-      await req.app.locals.services.todos.deleteTodoImage(req.params.id);
+      await req.app.locals.services.todos.deleteTodoImage(
+        res.locals.userId,
+        req.params.id,
+      );
 
       res.json({
         success: true,

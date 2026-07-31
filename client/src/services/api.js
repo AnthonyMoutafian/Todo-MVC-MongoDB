@@ -1,5 +1,11 @@
 const API = import.meta.env.VITE_API_URL;
 
+function authHeaders() {
+  return {
+    Authorization: `Bearer ${localStorage.getItem("token")}`,
+  };
+}
+
 export async function registerUser(data) {
   const res = await fetch(`${API}/register`, {
     method: "POST",
@@ -9,7 +15,7 @@ export async function registerUser(data) {
     body: JSON.stringify(data),
   });
 
-  return await res.json();
+  return res.json();
 }
 
 export async function loginUser(data) {
@@ -21,13 +27,15 @@ export async function loginUser(data) {
     body: JSON.stringify(data),
   });
 
-  return await res.json();
+  return res.json();
 }
 
 export async function getCurrentUser() {
-  const res = await fetch(`${API}/todo`);
+  const res = await fetch(`${API}/todo`, {
+    headers: authHeaders(),
+  });
 
-  return await res.json();
+  return res.json();
 }
 
 export async function addTodo(todo) {
@@ -35,66 +43,82 @@ export async function addTodo(todo) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...authHeaders(),
     },
-    body: JSON.stringify({
-      todo,
-    }),
+    body: JSON.stringify({ todo }),
   });
 
-  return await res.json();
+  return res.json();
 }
 
 export async function editTodo(id) {
-  return await fetch(`${API}/todo/edit/${id}`, {
+  const res = await fetch(`${API}/todo/edit/${id}`, {
     method: "POST",
+    headers: authHeaders(),
   });
+
+  return res.json();
 }
 
 export async function saveTodo(id, todo) {
-  return await fetch(`${API}/todo/save/${id}`, {
+  const res = await fetch(`${API}/todo/save/${id}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...authHeaders(),
     },
-    body: JSON.stringify({
-      todo,
-    }),
+    body: JSON.stringify({ todo }),
   });
+
+  return res.json();
 }
 
 export async function doneTodo(id) {
-  return await fetch(`${API}/todo/done/${id}`, {
+  const res = await fetch(`${API}/todo/done/${id}`, {
     method: "POST",
+    headers: authHeaders(),
   });
+
+  return res.json();
 }
 
 export async function deleteTodo(id) {
-  return await fetch(`${API}/todo/delete/${id}`, {
+  const res = await fetch(`${API}/todo/delete/${id}`, {
     method: "POST",
+    headers: authHeaders(),
   });
+
+  return res.json();
 }
 
 export async function logoutUser() {
-  return await fetch(`${API}/logout`, {
+  const res = await fetch(`${API}/logout`, {
     method: "POST",
+    headers: authHeaders(),
   });
+
+  localStorage.removeItem("token");
+
+  return res.json();
 }
+
 export async function uploadAvatar(file) {
   const formData = new FormData();
-
   formData.append("avatar", file);
 
   const res = await fetch(`${API}/avatar`, {
     method: "PUT",
+    headers: authHeaders(),
     body: formData,
   });
 
-  return await res.json();
+  return res.json();
 }
 
 export async function deleteAvatar() {
   const res = await fetch(`${API}/avatar`, {
     method: "DELETE",
+    headers: authHeaders(),
   });
 
   return res.json();
@@ -102,11 +126,11 @@ export async function deleteAvatar() {
 
 export async function uploadTodoImage(id, file) {
   const formData = new FormData();
-
   formData.append("image", file);
 
   const res = await fetch(`${API}/todo/${id}/image`, {
     method: "PUT",
+    headers: authHeaders(),
     body: formData,
   });
 
@@ -116,6 +140,7 @@ export async function uploadTodoImage(id, file) {
 export async function deleteTodoImage(id) {
   const res = await fetch(`${API}/todo/${id}/image`, {
     method: "DELETE",
+    headers: authHeaders(),
   });
 
   return res.json();
