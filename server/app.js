@@ -7,6 +7,7 @@ var logger = require("morgan");
 const mongoose = require("mongoose");
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
+var jwtRouter = require("./routes/jwt")
 const { AuthServices } = require("./services/authService");
 const authRouter = require("./routes/auth");
 const { ReadDBService } = require("./services/readDBService");
@@ -56,6 +57,7 @@ app.use(cors(corsOptions));
 app.use("/", indexRouter);
 app.use("/api", usersRouter);
 app.use("/api", authRouter);
+app.use("/api", jwtRouter);
 app.use("/api/todo", todoRouter);
 
 app.use(function (req, res, next) {

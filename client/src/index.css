@@ -397,3 +397,63 @@ body {
     background-color: rgb(255, 238, 0);
   }
 }
+
+.popupOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  z-index: 9999;
+}
+
+
+.sessionPopup {
+  background: white;
+  width: 350px;
+
+  padding: 25px;
+  border-radius: 12px;
+
+  text-align: center;
+}
+
+
+.sessionPopup h2 {
+  margin-bottom: 10px;
+}
+
+
+.sessionPopup p {
+  margin-bottom: 20px;
+}
+
+
+.popupButtons {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+
+.popupButtons button {
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+
+.stayBtn {
+  background: green;
+  color: white;
+}
+
+
+.logoutBtn {
+  background: red;
+  color: white;
+}

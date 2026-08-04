@@ -18,14 +18,19 @@ class AuthController {
 
   async loginUser(req, res) {
     try {
-      const token = await req.app.locals.services.auth.loginUser(req.body);
+      const { accessToken, refreshToken } =
+        await req.app.locals.services.auth.loginUser(req.body);
 
-      res.cookie("Login", token);
+      res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
 
       res.json({
         success: true,
-        message: "Login successful",
-        token,
+        accessToken,
       });
     } catch (err) {
       res.status(400).json({
@@ -37,7 +42,9 @@ class AuthController {
 
   async logoutUser(req, res) {
     try {
-      await req.app.locals.services.auth.logoutUser();
+      await req.app.locals.services.auth.logoutUser(res.locals.userId);
+
+      res.clearCookie("refreshToken");
 
       res.json({
         success: true,
