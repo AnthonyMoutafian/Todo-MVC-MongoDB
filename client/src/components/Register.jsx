@@ -33,8 +33,6 @@ export default function Register() {
         return;
       }
 
-      localStorage.setItem("token", data.token);
-
       navigate("/login");
     } catch (err) {
       setError(err.message);

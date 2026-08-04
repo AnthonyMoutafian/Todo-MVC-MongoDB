@@ -1,10 +1,13 @@
 const { Schema, model } = require("mongoose");
-const bcrypt = require("bcryptjs")
+const bcrypt = require("bcryptjs");
 
-const imageSchema = new Schema({
+const imageSchema = new Schema(
+  {
     fileId: String,
     url: String,
-}, { _id: false });
+  },
+  { _id: false },
+);
 
 const todoSchema = new Schema({
   todo: {
@@ -46,16 +49,20 @@ const userSchema = new Schema({
       },
     },
   },
-  avatar:  {
+  avatar: {
     type: imageSchema,
     default: null,
   },
   todos: [todoSchema],
+  refreshToken: {
+    type: String,
+    default: null,
+  },
 });
 
-userSchema.pre("save", async function(){
-  const hashedPassword = await bcrypt.hash(this.password,10);
-  this.password = hashedPassword
-})
+userSchema.pre("save", async function () {
+  const hashedPassword = await bcrypt.hash(this.password, 10);
+  this.password = hashedPassword;
+});
 
 module.exports = model("User", userSchema);
