@@ -32,7 +32,7 @@ export default function Login() {
         return;
       }
 
-      localStorage.setItem("token", data.token);
+      localStorage.setItem("token", data.accessToken);
 
       navigate("/todo");
     } catch (err) {

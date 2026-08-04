@@ -23,22 +23,20 @@ export default function Todo() {
   async function loadTodos() {
     if (!localStorage.getItem("token")) {
       setLoggedIn(false);
+      navigate("/login");
       return;
     }
 
     try {
       const data = await getCurrentUser();
 
-      if (!data.success) {
-        localStorage.removeItem("token");
-        setLoggedIn(false);
-        return;
-      }
-
       setTodos(data.user.todos || []);
-    } catch {
+    } catch (err) {
       localStorage.removeItem("token");
+
       setLoggedIn(false);
+
+      navigate("/login");
     }
   }
 
@@ -49,60 +47,90 @@ export default function Todo() {
   async function createTodo(e) {
     e.preventDefault();
 
-    await addTodo(value);
+    try {
+      await addTodo(value);
 
-    setValue("");
+      setValue("");
 
-    loadTodos();
+      loadTodos();
+    } catch {
+      navigate("/login");
+    }
   }
 
   async function handleEdit(id) {
-    await editTodo(id);
+    try {
+      await editTodo(id);
 
-    loadTodos();
+      loadTodos();
+    } catch {
+      navigate("/login");
+    }
   }
 
   async function handleSave(id, todo) {
-    await saveTodo(id, todo);
+    try {
+      await saveTodo(id, todo);
 
-    loadTodos();
+      loadTodos();
+    } catch {
+      navigate("/login");
+    }
   }
 
   async function handleDone(id) {
-    await doneTodo(id);
+    try {
+      await doneTodo(id);
 
-    loadTodos();
+      loadTodos();
+    } catch {
+      navigate("/login");
+    }
   }
 
   async function handleDelete(id) {
-    await deleteTodo(id);
+    try {
+      await deleteTodo(id);
 
-    loadTodos();
+      loadTodos();
+    } catch {
+      navigate("/login");
+    }
   }
 
   async function logout() {
-    await logoutUser();
+    try {
+      await logoutUser();
+    } finally {
+      localStorage.removeItem("token");
 
-    localStorage.removeItem("token");
+      setLoggedIn(false);
+      setTodos([]);
 
-    setLoggedIn(false);
-    setTodos([]);
-
-    navigate("/login");
+      navigate("/login");
+    }
   }
 
   async function handleImageUpload(todoId, file) {
     if (!file) return;
 
-    await uploadTodoImage(todoId, file);
+    try {
+      await uploadTodoImage(todoId, file);
 
-    loadTodos();
+      loadTodos();
+    } catch {
+      navigate("/login");
+    }
   }
 
   async function handleDeleteImage(todoId) {
-    await deleteTodoImage(todoId);
+    try {
+      await deleteTodoImage(todoId);
 
-    loadTodos();
+      loadTodos();
+    } catch {
+      navigate("/login");
+    }
   }
 
   if (!loggedIn) {

@@ -11,7 +11,7 @@ const checkAuth = (req, res, next) => {
       });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.ACCESS_SECRET);
 
     res.locals.userId = decoded.id;
 
