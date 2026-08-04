@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 import Home from "./components/Home";
 import Login from "./components/Login";
@@ -6,9 +7,97 @@ import Register from "./components/Register";
 import Todo from "./components/Todo";
 import Profile from "./components/Profile";
 
-export default function App() {
+const API = import.meta.env.VITE_API_URL;
+
+function AppContent() {
+  const [showPopup, setShowPopup] = useState(false);
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    function handleSessionExpired() {
+      setShowPopup(true);
+    }
+
+    function handleForceLogout() {
+      localStorage.removeItem("token");
+
+      setShowPopup(false);
+
+      navigate("/login");
+    }
+
+    window.addEventListener("session-expired", handleSessionExpired);
+
+    window.addEventListener("force-logout", handleForceLogout);
+
+    return () => {
+      window.removeEventListener("session-expired", handleSessionExpired);
+
+      window.removeEventListener("force-logout", handleForceLogout);
+    };
+  }, [navigate]);
+
+  async function staySignedIn() {
+    try {
+      const res = await fetch(`${API}/refresh`, {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        throw new Error("Refresh failed");
+      }
+
+      const data = await res.json();
+
+      localStorage.setItem("token", data.accessToken);
+
+      setShowPopup(false);
+
+      navigate("/todo");
+    } catch {
+      logout();
+    }
+  }
+
+  async function logout() {
+    try {
+      await fetch(`${API}/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch {}
+
+    localStorage.removeItem("token");
+
+    setShowPopup(false);
+
+    navigate("/login");
+  }
+
   return (
-    <BrowserRouter>
+    <>
+      {showPopup && (
+        <div className="popupOverlay">
+          <div className="sessionPopup">
+            <h2>Session Expired</h2>
+
+            <p>Your access token expired. Do you want to continue?</p>
+
+            <div className="popupButtons">
+              <button className="stayBtn" onClick={staySignedIn}>
+                Stay Signed In
+              </button>
+
+              <button className="logoutBtn" onClick={logout}>
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Routes>
         <Route path="/" element={<Home />} />
 
@@ -20,6 +109,14 @@ export default function App() {
 
         <Route path="/todo" element={<Todo />} />
       </Routes>
+    </>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
     </BrowserRouter>
   );
 }

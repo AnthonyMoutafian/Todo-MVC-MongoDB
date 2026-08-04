@@ -3,10 +3,61 @@ const { ReadDBService } = require("./readDBService");
 const { schema } = require("../schema/schema");
 const googleDrive = require("./googleDriveService");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 
 class AuthServices extends ReadDBService {
   constructor(models) {
     super(models);
+  }
+
+  createAccessToken(userId) {
+    return jwt.sign(
+      {
+        id: userId,
+        jti: crypto.randomUUID(),
+      },
+      process.env.ACCESS_SECRET,
+      {
+        expiresIn: "15m",
+      },
+    );
+  }
+
+  createRefreshToken(userId) {
+    return jwt.sign(
+      {
+        id: userId,
+        jti: crypto.randomUUID(),
+      },
+      process.env.REFRESH_SECRET,
+      {
+        expiresIn: "7d",
+      },
+    );
+  }
+
+  async refreshAccessToken(refreshToken) {
+    if (!refreshToken) {
+      throw new Error("Unauthorized");
+    }
+
+    try {
+      const payload = jwt.verify(refreshToken, process.env.REFRESH_SECRET);
+
+      const user = await this.getUserById(payload.id);
+
+      if (!user) {
+        throw new Error("Unauthorized");
+      }
+
+      if (user.refreshToken !== refreshToken) {
+        throw new Error("Unauthorized");
+      }
+
+      return this.createAccessToken(user._id);
+    } catch (err) {
+      throw new Error("Unauthorized");
+    }
   }
 
   async uploadAvatar(userId, file) {
@@ -41,19 +92,13 @@ class AuthServices extends ReadDBService {
 
     newUser.todos = [];
     newUser.avatar = null;
+    newUser.refreshToken = null;
 
     const createdUser = await this.models.users.create(newUser);
 
-    const token = jwt.sign({ id: createdUser._id }, process.env.JWT_SECRET, {
-      expiresIn: "10s",
-    });
+    const { password, refreshToken, ...user } = createdUser._doc;
 
-    const { password, ...user } = createdUser._doc;
-
-    return {
-      ...user,
-      token,
-    };
+    return user;
   }
 
   async loginUser(body) {
@@ -71,12 +116,39 @@ class AuthServices extends ReadDBService {
       throw new Error("Invalid email or password");
     }
 
-    return jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
+    const accessToken = this.createAccessToken(user._id);
+
+    const refreshToken = this.createRefreshToken(user._id);
+
+    await this.updateUser(
+      {
+        _id: user._id,
+      },
+      {
+        $set: {
+          refreshToken,
+        },
+      },
+    );
+
+    return {
+      accessToken,
+      refreshToken,
+    };
   }
 
-  async logoutUser() {
+  async logoutUser(userId) {
+    await this.updateUser(
+      {
+        _id: userId,
+      },
+      {
+        $set: {
+          refreshToken: null,
+        },
+      },
+    );
+
     return true;
   }
 
